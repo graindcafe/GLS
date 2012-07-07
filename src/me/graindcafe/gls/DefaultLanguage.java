@@ -3,18 +3,16 @@ package me.graindcafe.gls;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
+import java.util.TreeMap;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 public class DefaultLanguage extends Language {
 
-	/**
-	 * Your language version, use it as you want.
-	 */
-	public static byte version = 1;
 	/**
 	 * You
 	 */
@@ -48,10 +46,14 @@ public class DefaultLanguage extends Language {
 			put("Warning.LanguageOutdated", "Your language file is outdated!");
 		}
 	};
+	/**
+	 * Your language version, use it as you want.
+	 */
+	public static byte version = 1;
 
 	/**
 	 * Check if a language contains all sentences that the Default has. If not,
-	 * it add the missing ones in head of the language file
+	 * it adds the missing ones in head of the language file
 	 * 
 	 * @param l   Language to check
 	 * @return if the language was complete
@@ -145,12 +147,25 @@ public class DefaultLanguage extends Language {
 	}
 
 	/**
+	 * Set the language folder, should be
+	 * plugin.getDataFolder().getPath()+"/languages/" =
+	 * plugins/YOURPLUGIN/languages/
+	 * 
+	 * @param languagesFolder
+	 */
+	public static void setLanguagesFolder(String languagesFolder) {
+		if (!languagesFolder.endsWith("/"))
+			languagesFolder += "/";
+		DefaultLanguage.languageFolder = languagesFolder;
+	}
+
+	/**
 	 * Set the default language.
 	 * 
 	 * @param locales
 	 *            HashMap<String,String>
 	 */
-	public static void setLocales(HashMap<String, String> locales) {
+	public static void setLocales(Map<String, String> locales) {
 		Strings = new HashMap<String, String>() {
 			private static final long serialVersionUID = 5476813380526513072L;
 			{
@@ -197,32 +212,44 @@ public class DefaultLanguage extends Language {
 	public static void setVersion(byte version) {
 		DefaultLanguage.version = version;
 	}
-
 	/**
-	 * Set the language folder, should be
-	 * plugin.getDataFolder().getPath()+"/languages/" =
-	 * plugins/YOURPLUGIN/languages/
-	 * 
-	 * @param languagesFolder
+	 * Get the node from the map 
+	 * @return The value or null
 	 */
-	public static void setLanguagesFolder(String languagesFolder) {
-		if (!languagesFolder.endsWith("/"))
-			languagesFolder += "/";
-		DefaultLanguage.languageFolder = languagesFolder;
-	}
-	
 	@Override
 	public String get(String key) {
 		return Strings.get(key);
 	}
-
+	
+	/**
+	 * Get the author 
+	 */
 	@Override
 	public String getAuthor() {
 		return DefaultLanguage.author;
 	}
 
+	/**
+	 * Get the version
+	 */
 	@Override
 	public byte getVersion() {
 		return DefaultLanguage.version;
+	}
+
+	/**
+	 * Add a prefix to all nodes beginning with nodeBegin
+	 * @param nodeBegin
+	 * @param prefix
+	 * @return If there was at least a node matching 
+	 */
+	public boolean setPrefix(String nodeBegin, String prefix)
+	{
+		TreeMap<String,String> toAdd=new TreeMap<String,String>();
+		for(Entry<String,String> entry : Strings.entrySet())
+			if(entry.getKey().startsWith(nodeBegin))
+				toAdd.put(entry.getKey(), prefix+entry.getValue());
+		Strings.putAll(toAdd);
+		return !toAdd.isEmpty();
 	}
 }

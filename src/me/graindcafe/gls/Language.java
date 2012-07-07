@@ -3,7 +3,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.logging.Logger;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -18,15 +17,12 @@ public class Language {
 	/**
 	 * Initialize a language and return it. Check if the given language is
 	 * correct. Save the default language file.
-	 * Display the chosen language and his authors
 	 * 
-	 * @param log
-	 *            the Minecraft Logger
 	 * @param languageName
 	 *            the name of the language to load
 	 * @return The language or the default language
 	 */
-	public static Language init(Logger log, String languageName) {
+	public static Language init(String languageName) {
 		Language lang;
 		// Save your default language
 		// Should be first in case another language use it.
@@ -38,48 +34,45 @@ public class Language {
 			if (lang.getVersion() != DefaultLanguage.version)
 				// 255 is a special return of getVersion, if the file was not
 				// loaded
-				if (lang.getVersion() == 255)
-					log.warning(lang.get("Warning.LanguageFileMissing"));
+				if (lang.getVersion() == Byte.MAX_VALUE)
+					lang.flag |=2;
 				else {
-					// Put the missing sentences in the default language file
-					// header
-					DefaultLanguage.checkLanguage(lang);
-					log.warning(lang.get("Warning.LanguageFileOutdated"));
+					// The language file is outdated
+					lang.flag|=4;
 				}
 			// check if all sentences are in the given language file, and put
 			// the missing ones in its header
-			else if (!DefaultLanguage.checkLanguage(lang))
-				log.warning(lang.get("Warning.LanguageFileOutdated"));
+			if (!DefaultLanguage.checkLanguage(lang))
+				lang.flag|=8;
 		} else {
 			// If it's your defaultlanguage, don't load a configuration and
 			// unnecessary stuff
 			lang = new DefaultLanguage();
 		}
-		// Display the author
-		log.info(String.format(lang.get("Info.ChosenLanguage"), lang.getName(),
-				lang.getAuthor()));
 		return lang;
 	}
-
-	/**
-	 * The YAML file corresponding to this language
-	 */
-	protected FileConfiguration File;
 	/**
 	 * The language that this is based on
 	 */
 	protected Language Default;
-
+	/**
+	 * The YAML file corresponding to this language
+	 */
+	protected FileConfiguration File;
+	protected File FileObject;
 	/**
 	 * Parsed strings
 	 */
 	protected HashMap<String, String> finalStrings;
-
+	/**
+	 * A flag indicating the state of file
+	 */
+	private byte flag=0;
 	/**
 	 * This language name
 	 */
 	protected String languageName;
-	protected File FileObject; 
+
 	/**
 	 * Useful for the Default Language that doesn't use File, Default and
 	 * finalStrings
@@ -89,11 +82,11 @@ public class Language {
 	}
 
 	/**
-	 * 
+	 * Parse a language file
 	 * @param languageName
 	 *            Should be the language's file name
 	 */
-	public Language(String languageName) {
+	protected Language(String languageName) {
 		if (!languageName.substring(languageName.length() - 3)
 				.equalsIgnoreCase("yml"))
 			languageName += ".yml";
@@ -123,13 +116,10 @@ public class Language {
 			try {
 				File.load(f);
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (InvalidConfigurationException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			this.languageName = File.getString("Name", languageName);
@@ -146,7 +136,6 @@ public class Language {
 		finalStrings = new HashMap<String, String>();
 
 	}
-
 	/**
 	 * Get a locale specified by the giving key
 	 * 
@@ -170,8 +159,7 @@ public class Language {
 			finalStrings.put(key, finalString);
 			return finalString;
 		}
-	}
-
+	} 
 	/**
 	 * Get all contributors for this language
 	 * 
@@ -203,10 +191,12 @@ public class Language {
 	protected FileConfiguration getFile() {
 		return File;
 	}
+
 	public File getFileObject()
 	{
 		return this.FileObject;
 	}
+
 	/**
 	 * Get the language name
 	 * 
@@ -228,9 +218,16 @@ public class Language {
 					Default instanceof DefaultLanguage ? 0 : Default
 							.getVersion());
 		else
-			return (byte) 255;
+			return (byte) Byte.MAX_VALUE;
 	}
-
+	/**
+	 * Read the flag to knoow if the file had missing nodes
+	 * @return whether the language file had missing nodes
+	 */
+	public boolean hasMissingNode()
+	{
+		return (flag & 8)==8;
+	}
 	/**
 	 * Is this language a root ?
 	 * 
@@ -238,6 +235,25 @@ public class Language {
 	 */
 	protected boolean isDefault() {
 		return Default instanceof DefaultLanguage;
+	}
+
+	/**
+	 * Read the flag to get if the specified file was found
+	 * @return whether the language file was found
+	 */
+	public boolean isLoaded()
+	{
+		return (flag & 2)==2;
+	}
+
+	/**
+	 * Read the flag to know if the specified file was up to date or outdated
+	 * Depending of the version of the file and the version of the default language
+	 * @return whether the language file was outdated
+	 */
+	public boolean isOutdated()
+	{
+		return (flag & 4)==4;
 	}
 
 	/**
