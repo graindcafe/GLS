@@ -98,11 +98,11 @@ public class Language {
 				.equalsIgnoreCase("yml"))
 			languageName += ".yml";
 		// try to get the file as it is given 
-		File f = new File(DefaultLanguage.languagesFolder
+		File f = new File(DefaultLanguage.languageFolder
 				+ languageName);
 		if (!f.exists()) {
 			// no ? Maybe a problem of cases
-			File dir = new File(DefaultLanguage.languagesFolder);
+			File dir = new File(DefaultLanguage.languageFolder);
 			if (dir.exists()) {
 				// List all files and try to get one corresponding with
 				// languageName

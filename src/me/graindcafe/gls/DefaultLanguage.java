@@ -18,11 +18,11 @@ public class DefaultLanguage extends Language {
 	/**
 	 * You
 	 */
-	private static String author = "Graindcafe";
+	private static String author = "YourName";
 	/**
-	 * The default language folder. DON'T FORGET THE LAST SLASH
+	 * The default language folder.
 	 */
-	protected static String languagesFolder = "plugins/";
+	protected static String languageFolder = "plugins/YourPlugin/languages/";
 	/**
 	 * This language name
 	 */
@@ -53,8 +53,7 @@ public class DefaultLanguage extends Language {
 	 * Check if a language contains all sentences that the Default has. If not,
 	 * it add the missing ones in head of the language file
 	 * 
-	 * @param l
-	 *            Language to check
+	 * @param l   Language to check
 	 * @return if the language was complete
 	 */
 	public static boolean checkLanguage(Language l) {
@@ -62,7 +61,7 @@ public class DefaultLanguage extends Language {
 			return false;
 		while (!l.isDefault())
 			l = l.getDefault();
-		boolean retour = true;
+		boolean valid = true;
 		FileConfiguration lFile = l.getFile();
 		String value;
 		Stack<String> todo = new Stack<String>();
@@ -76,13 +75,13 @@ public class DefaultLanguage extends Language {
 		}
 		String header = l.get("File.DefaultLanguageFile");
 		if (lFile.getInt("Version", 0) != DefaultLanguage.version) {
-			retour = false;
+			valid = false;
 			header += "# " + Strings.get("Warning.LanguageFileOutdated") + "\n";
 		}
 		if (todo.isEmpty())
 			header += l.get("File.LanguageFileComplete");
 		else {
-			retour = false;
+			valid = false;
 			header += l.get("File.TranslationsToDo");
 		}
 		while (!todo.isEmpty())
@@ -92,10 +91,9 @@ public class DefaultLanguage extends Language {
 		try {
 			lFile.save(l.getFileObject());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return retour;
+		return valid;
 	}
 
 	/**
@@ -105,9 +103,9 @@ public class DefaultLanguage extends Language {
 	 *            the name of this language
 	 */
 	public static void saveDefaultLanguage(String fileName) {
-		File dir = new File(DefaultLanguage.languagesFolder);
+		File dir = new File(DefaultLanguage.languageFolder);
 		if (!dir.exists()) {
-			String[] languageFolders = DefaultLanguage.languagesFolder
+			String[] languageFolders = DefaultLanguage.languageFolder
 					.split("/");
 			String tmplevelFolder = "";
 			for (byte i = 0; i < languageFolders.length; i++) {
@@ -126,12 +124,12 @@ public class DefaultLanguage extends Language {
 			f.set(e.getKey(), e.getValue());
 		}
 
-		f.options().header("# This is the plugin default language file \n# You should not edit it ! All changes will be undone !\n# Create another language file (custom.yml) \n# and put 'Default: english' if your default language is english\n");
+		f.options()
+				.header("# This is the plugin default language file \n# You should not edit it ! All changes will be undone !\n# Create another language file (custom.yml) \n# and put 'Default: english' if your default language is english\n");
 		try {
-			f.save(new File(
-					DefaultLanguage.languagesFolder + fileName.toLowerCase()));
+			f.save(new File(DefaultLanguage.languageFolder
+					+ fileName.toLowerCase()));
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 	}
@@ -153,31 +151,32 @@ public class DefaultLanguage extends Language {
 	 *            HashMap<String,String>
 	 */
 	public static void setLocales(HashMap<String, String> locales) {
-		if (locales.containsKey("File.TheDefaultLanguageFile"))
-			locales.put(
-					"File.TheDefaultLanguageFile",
-					"# This is the plugin default language file \n# You should not edit it ! All changes will be undone !\n# Create another language file (custom.yml) \n# and put 'Default: english' if your default language is english\n");
-		if (locales.containsKey("File.DefaultLanguageFile"))
-			locales.put(
-					"File.DefaultLanguageFile",
-					"# This is your default language file \n# You should not edit it !\n# Create another language file (custom.yml) \n# and put 'Default: english' if your default language is english\n");
-		if (locales.containsKey("File.TheDefaultLanguageFile"))
-			locales.put("File.TranslationsToDo",
-					"# Your language file is complete\n");
-		if (locales.containsKey("File.TheDefaultLanguageFile"))
-			locales.put("File.TranslationsToDo",
-					"# Translations to do in this language file\n");
-		if (locales.containsKey("Info.ChosenLanguage"))
-			locales.put("Info.ChosenLanguage",
-					"Chosen language : %s. Provided by %s.");
-		if (locales
-				.containsKey("Warning.TheDeLanguageFileMissingfaultLanguageFile"))
-			locales.put("Warning.LanguageFileMissing",
-					"The specified language file is missing!");
-		if (locales.containsKey("Warning.LanguageOutdated"))
-			locales.put("Warning.LanguageOutdated",
-					"Your language file is outdated!");
-		Strings = locales;
+		Strings = new HashMap<String, String>() {
+			private static final long serialVersionUID = 5476813380526513072L;
+			{
+				put("File.TheDefaultLanguageFile",
+						"# This is the plugin default language file \n# You should not edit it ! All changes will be undone !\n# Create another language file (custom.yml) \n# and put 'Default: english' if your default language is english\n");
+
+				put("File.DefaultLanguageFile",
+						"# This is your default language file \n# You should not edit it !\n# Create another language file (custom.yml) \n# and put 'Default: english' if your default language is english\n");
+
+				put("File.TranslationsToDo",
+						"# Your language file is complete\n");
+
+				put("File.TranslationsToDo",
+						"# Translations to do in this language file\n");
+
+				put("Info.ChosenLanguage",
+						"Chosen language : %s. Provided by %s.");
+
+				put("Warning.LanguageFileMissing",
+						"The specified language file is missing!");
+
+				put("Warning.LanguageOutdated",
+						"Your language file is outdated!");
+			}
+		};
+		Strings.putAll(locales);
 	}
 
 	/**
@@ -209,9 +208,9 @@ public class DefaultLanguage extends Language {
 	public static void setLanguagesFolder(String languagesFolder) {
 		if (!languagesFolder.endsWith("/"))
 			languagesFolder += "/";
-		DefaultLanguage.languagesFolder = languagesFolder;
+		DefaultLanguage.languageFolder = languagesFolder;
 	}
-
+	
 	@Override
 	public String get(String key) {
 		return Strings.get(key);
