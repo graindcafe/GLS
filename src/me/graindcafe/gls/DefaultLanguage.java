@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
-import java.util.TreeMap;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -235,21 +234,5 @@ public class DefaultLanguage extends Language {
 	@Override
 	public byte getVersion() {
 		return DefaultLanguage.version;
-	}
-
-	/**
-	 * Add a prefix to all nodes beginning with nodeBegin
-	 * @param nodeBegin
-	 * @param prefix
-	 * @return If there was at least a node matching 
-	 */
-	public boolean setPrefix(String nodeBegin, String prefix)
-	{
-		TreeMap<String,String> toAdd=new TreeMap<String,String>();
-		for(Entry<String,String> entry : Strings.entrySet())
-			if(entry.getKey().startsWith(nodeBegin))
-				toAdd.put(entry.getKey(), prefix+entry.getValue());
-		Strings.putAll(toAdd);
-		return !toAdd.isEmpty();
 	}
 }

@@ -3,6 +3,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.TreeMap;
+import java.util.Map.Entry;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -265,5 +267,20 @@ public class Language {
 	 */
 	public String parseColor(String s) {
 		return s.replaceAll("[&](\\w{1})", "\u00A7$1");
+	}
+	/**
+	 * Add a prefix to all nodes beginning with nodeBegin
+	 * @param nodeBegin
+	 * @param prefix
+	 * @return If there was at least a node matching 
+	 */
+	public boolean setPrefix(String nodeBegin, String prefix)
+	{
+		TreeMap<String,String> toAdd=new TreeMap<String,String>();
+		for(Entry<String,String> entry : finalStrings.entrySet())
+			if(entry.getKey().startsWith(nodeBegin))
+				toAdd.put(entry.getKey(), prefix+entry.getValue());
+		finalStrings.putAll(toAdd);
+		return !toAdd.isEmpty();
 	}
 }
