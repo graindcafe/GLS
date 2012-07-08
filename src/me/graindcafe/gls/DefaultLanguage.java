@@ -32,13 +32,13 @@ public class DefaultLanguage extends Language {
 
 		{
 			put("File.TheDefaultLanguageFile",
-					"# This is the plugin default language file \n# You should not edit it ! All changes will be undone !\n# Create another language file (custom.yml) \n# and put 'Default: english' if your default language is english\n");
+					"This is the plugin default language file \nYou should not edit it ! All changes will be undone !\nCreate another language file (custom.yml) \nand put 'Default: english' if your default language is english\n");
 			put("File.DefaultLanguageFile",
-					"# This is your default language file \n# You should not edit it !\n# Create another language file (custom.yml) \n# and put 'Default: english' if your default language is english\n");
+					"This is your default language file \nYou should not edit it !\nCreate another language file (custom.yml) \nand put 'Default: english' if your default language is english\n");
 			put("File.LanguageFileComplete",
-					"# Your language file is complete\n");
+					"Your language file is complete");
 			put("File.TranslationsToDo",
-					"# Translations to do in this language file\n");
+					"Translations to do in this language file");
 			put("Info.ChosenLanguage", "Chosen language : %s. Provided by %s.");
 			put("Warning.LanguageFileMissing",
 					"The specified language file is missing!");
@@ -69,24 +69,26 @@ public class DefaultLanguage extends Language {
 		if (lFile == null)
 			return false;
 		for (String key : Strings.keySet()) {
+			if(key.startsWith("File."))
+				continue;
 			value = lFile.getString(key, null);
 			if (value == null) {
 				todo.push(key);
 			}
 		}
-		String header = l.get("File.DefaultLanguageFile");
+		String header = l.get("File.DefaultLanguageFile").replaceAll("\\n", "\n");
 		if (lFile.getInt("Version", 0) != DefaultLanguage.version) {
 			valid = false;
-			header += "# " + Strings.get("Warning.LanguageFileOutdated") + "\n";
+			header += Strings.get("Warning.LanguageFileOutdated") + "\n";
 		}
 		if (todo.isEmpty())
-			header += l.get("File.LanguageFileComplete");
+			header += l.get("File.LanguageFileComplete")+"\n";
 		else {
 			valid = false;
-			header += l.get("File.TranslationsToDo");
+			header += l.get("File.TranslationsToDo")+"\n";
 		}
 		while (!todo.isEmpty())
-			header += "# - " + todo.peek() + ": " + Strings.get(todo.pop())
+			header += "- " + todo.peek() + ": " + Strings.get(todo.pop())
 					+ "\n";
 		lFile.options().header(header);
 		try {

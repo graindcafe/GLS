@@ -74,7 +74,10 @@ public class Language {
 	 * This language name
 	 */
 	protected String languageName;
-
+	/**
+	 * Prefixes for messages
+	 */
+	protected TreeMap<String,String> prefixes;
 	/**
 	 * Useful for the Default Language that doesn't use File, Default and
 	 * finalStrings
@@ -136,6 +139,7 @@ public class Language {
 			this.languageName = languageName;
 		}
 		finalStrings = new HashMap<String, String>();
+		prefixes = new TreeMap<String, String>();
 
 	}
 	/**
@@ -146,10 +150,8 @@ public class Language {
 	 * @return The sentence or null if none of default languages have it.
 	 */
 	public String get(String key) {
-		if (finalStrings.containsKey(key)) {
-			return finalStrings.get(key);
-		} else {
-			String finalString;
+		String finalString=finalStrings.get(key);
+		if (finalString==null) {
 			if (File != null) {
 				finalString = File.getString(key, null);
 				if (finalString != null)
@@ -158,9 +160,12 @@ public class Language {
 					finalString = Default.get(key);
 			} else
 				finalString = Default.get(key);
+			for(String start : prefixes.keySet())
+				if(key.startsWith(start))
+					finalString= prefixes.get(start)+finalString;
 			finalStrings.put(key, finalString);
-			return finalString;
 		}
+		return finalString;
 	} 
 	/**
 	 * Get all contributors for this language
@@ -276,11 +281,14 @@ public class Language {
 	 */
 	public boolean setPrefix(String nodeBegin, String prefix)
 	{
+		if(finalStrings==null)
+			return false;
 		TreeMap<String,String> toAdd=new TreeMap<String,String>();
 		for(Entry<String,String> entry : finalStrings.entrySet())
 			if(entry.getKey().startsWith(nodeBegin))
 				toAdd.put(entry.getKey(), prefix+entry.getValue());
 		finalStrings.putAll(toAdd);
+		prefixes.put(nodeBegin, prefix);
 		return !toAdd.isEmpty();
 	}
 }
