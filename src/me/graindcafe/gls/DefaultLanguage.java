@@ -1,7 +1,9 @@
 package me.graindcafe.gls;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -9,6 +11,8 @@ import java.util.Stack;
 
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+
+import com.google.common.io.Files;
 
 public class DefaultLanguage extends Language {
 
@@ -35,8 +39,7 @@ public class DefaultLanguage extends Language {
 					"This is the plugin default language file \nYou should not edit it ! All changes will be undone !\nCreate another language file (custom.yml) \nand put 'Default: english' if your default language is english\n");
 			put("File.DefaultLanguageFile",
 					"This is your default language file \nYou should not edit it !\nCreate another language file (custom.yml) \nand put 'Default: english' if your default language is english\n");
-			put("File.LanguageFileComplete",
-					"Your language file is complete");
+			put("File.LanguageFileComplete", "Your language file is complete");
 			put("File.TranslationsToDo",
 					"Translations to do in this language file");
 			put("Info.ChosenLanguage", "Chosen language : %s. Provided by %s.");
@@ -54,7 +57,8 @@ public class DefaultLanguage extends Language {
 	 * Check if a language contains all sentences that the Default has. If not,
 	 * it adds the missing ones in head of the language file
 	 * 
-	 * @param l   Language to check
+	 * @param l
+	 *            Language to check
 	 * @return if the language was complete
 	 */
 	public static boolean checkLanguage(Language l) {
@@ -69,33 +73,30 @@ public class DefaultLanguage extends Language {
 		if (lFile == null)
 			return false;
 		for (String key : Strings.keySet()) {
-			if(key.startsWith("File."))
+			if (key.startsWith("File."))
 				continue;
 			value = lFile.getString(key, null);
 			if (value == null) {
 				todo.push(key);
 			}
 		}
-		String header = l.get("File.DefaultLanguageFile").replaceAll("\\n", "\n");
+		String header = l.get("File.DefaultLanguageFile").replaceAll("\\n",
+				"\n");
 		if (lFile.getInt("Version", 0) != DefaultLanguage.version) {
 			valid = false;
 			header += Strings.get("Warning.LanguageFileOutdated") + "\n";
 		}
 		if (todo.isEmpty())
-			header += l.get("File.LanguageFileComplete")+"\n";
+			header += l.get("File.LanguageFileComplete") + "\n";
 		else {
 			valid = false;
-			header += l.get("File.TranslationsToDo")+"\n";
+			header += l.get("File.TranslationsToDo") + "\n";
 		}
 		while (!todo.isEmpty())
 			header += "- " + todo.peek() + ": " + Strings.get(todo.pop())
 					+ "\n";
 		lFile.options().header(header);
-		try {
-			lFile.save(l.getFileObject());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		save(lFile, l.getFileObject());
 		return valid;
 	}
 
@@ -129,9 +130,30 @@ public class DefaultLanguage extends Language {
 
 		f.options()
 				.header("# This is the plugin default language file \n# You should not edit it ! All changes will be undone !\n# Create another language file (custom.yml) \n# and put 'Default: english' if your default language is english\n");
+		save(f, fileName);
+	}
+
+	protected static void save(FileConfiguration f, String fileName) {
+		save(f,
+				new File(DefaultLanguage.languageFolder
+						+ fileName.toLowerCase()));
+	}
+
+	protected static void save(FileConfiguration f, File file) {
 		try {
-			f.save(new File(DefaultLanguage.languageFolder
-					+ fileName.toLowerCase()));
+
+			Files.createParentDirs(file);
+
+			String data = f.saveToString();
+
+			OutputStreamWriter writer = new OutputStreamWriter(
+					new FileOutputStream(file), "UTF-8");
+
+			try {
+				writer.write(data);
+			} finally {
+				writer.close();
+			}
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
@@ -213,17 +235,19 @@ public class DefaultLanguage extends Language {
 	public static void setVersion(byte version) {
 		DefaultLanguage.version = version;
 	}
+
 	/**
-	 * Get the node from the map 
+	 * Get the node from the map
+	 * 
 	 * @return The value or null
 	 */
 	@Override
 	public String get(String key) {
 		return Strings.get(key);
 	}
-	
+
 	/**
-	 * Get the author 
+	 * Get the author
 	 */
 	@Override
 	public String getAuthor() {

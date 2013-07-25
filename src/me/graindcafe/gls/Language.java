@@ -1,10 +1,14 @@
 package me.graindcafe.gls;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.HashMap;
-import java.util.TreeMap;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -37,15 +41,15 @@ public class Language {
 				// 255 is a special return of getVersion, if the file was not
 				// loaded
 				if (lang.getVersion() == Byte.MAX_VALUE)
-					lang.flag |=2;
+					lang.flag |= 2;
 				else {
 					// The language file is outdated
-					lang.flag|=4;
+					lang.flag |= 4;
 				}
 			// check if all sentences are in the given language file, and put
 			// the missing ones in its header
 			if (!DefaultLanguage.checkLanguage(lang))
-				lang.flag|=8;
+				lang.flag |= 8;
 		} else {
 			// If it's your defaultlanguage, don't load a configuration and
 			// unnecessary stuff
@@ -53,6 +57,7 @@ public class Language {
 		}
 		return lang;
 	}
+
 	/**
 	 * The language that this is based on
 	 */
@@ -69,7 +74,7 @@ public class Language {
 	/**
 	 * A flag indicating the state of file
 	 */
-	private byte flag=0;
+	private byte flag = 0;
 	/**
 	 * This language name
 	 */
@@ -77,7 +82,8 @@ public class Language {
 	/**
 	 * Prefixes for messages
 	 */
-	protected TreeMap<String,String> prefixes;
+	protected TreeMap<String, String> prefixes;
+
 	/**
 	 * Useful for the Default Language that doesn't use File, Default and
 	 * finalStrings
@@ -88,6 +94,7 @@ public class Language {
 
 	/**
 	 * Parse a language file
+	 * 
 	 * @param languageName
 	 *            Should be the language's file name
 	 */
@@ -95,9 +102,8 @@ public class Language {
 		if (!languageName.substring(languageName.length() - 3)
 				.equalsIgnoreCase("yml"))
 			languageName += ".yml";
-		// try to get the file as it is given 
-		File f = new File(DefaultLanguage.languageFolder
-				+ languageName);
+		// try to get the file as it is given
+		File f = new File(DefaultLanguage.languageFolder + languageName);
 		if (!f.exists()) {
 			// no ? Maybe a problem of cases
 			File dir = new File(DefaultLanguage.languageFolder);
@@ -113,13 +119,28 @@ public class Language {
 			}
 
 		}
-		this.FileObject=f;
+		this.FileObject = f;
 		// strip the extension
-		languageName = languageName.substring(0,languageName.length() - 4);
+		languageName = languageName.substring(0, languageName.length() - 4);
 		if (f.exists()) {
 			File = new YamlConfiguration();
 			try {
-				File.load(f);
+				InputStreamReader reader = new InputStreamReader(
+						new FileInputStream(f), "UTF-8");
+				StringBuilder builder = new StringBuilder();
+				BufferedReader input = new BufferedReader(reader);
+
+				try {
+					String line;
+
+					while ((line = input.readLine()) != null) {
+						builder.append(line);
+						builder.append('\n');
+					}
+				} finally {
+					input.close();
+				}
+				File.loadFromString(builder.toString());
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -142,6 +163,7 @@ public class Language {
 		prefixes = new TreeMap<String, String>();
 
 	}
+
 	/**
 	 * Get a locale specified by the giving key
 	 * 
@@ -150,8 +172,8 @@ public class Language {
 	 * @return The sentence or null if none of default languages have it.
 	 */
 	public String get(String key) {
-		String finalString=finalStrings.get(key);
-		if (finalString==null) {
+		String finalString = finalStrings.get(key);
+		if (finalString == null) {
 			if (File != null) {
 				finalString = File.getString(key, null);
 				if (finalString != null)
@@ -160,13 +182,14 @@ public class Language {
 					finalString = Default.get(key);
 			} else
 				finalString = Default.get(key);
-			for(String start : prefixes.keySet())
-				if(key.startsWith(start))
-					finalString= prefixes.get(start)+finalString;
+			for (String start : prefixes.keySet())
+				if (key.startsWith(start))
+					finalString = prefixes.get(start) + finalString;
 			finalStrings.put(key, finalString);
 		}
 		return finalString;
-	} 
+	}
+
 	/**
 	 * Get all contributors for this language
 	 * 
@@ -199,8 +222,7 @@ public class Language {
 		return File;
 	}
 
-	public File getFileObject()
-	{
+	public File getFileObject() {
 		return this.FileObject;
 	}
 
@@ -225,16 +247,18 @@ public class Language {
 					Default instanceof DefaultLanguage ? 0 : Default
 							.getVersion());
 		else
-			return (byte) Byte.MAX_VALUE;
+			return Byte.MAX_VALUE;
 	}
+
 	/**
 	 * Read the flag to knoow if the file had missing nodes
+	 * 
 	 * @return whether the language file had missing nodes
 	 */
-	public boolean hasMissingNode()
-	{
-		return (flag & 8)==8;
+	public boolean hasMissingNode() {
+		return (flag & 8) == 8;
 	}
+
 	/**
 	 * Is this language a root ?
 	 * 
@@ -246,21 +270,22 @@ public class Language {
 
 	/**
 	 * Read the flag to get if the specified file was found
+	 * 
 	 * @return whether the language file was found
 	 */
-	public boolean isLoaded()
-	{
-		return (flag & 2)==2;
+	public boolean isLoaded() {
+		return (flag & 2) == 2;
 	}
 
 	/**
 	 * Read the flag to know if the specified file was up to date or outdated
-	 * Depending of the version of the file and the version of the default language
+	 * Depending of the version of the file and the version of the default
+	 * language
+	 * 
 	 * @return whether the language file was outdated
 	 */
-	public boolean isOutdated()
-	{
-		return (flag & 4)==4;
+	public boolean isOutdated() {
+		return (flag & 4) == 4;
 	}
 
 	/**
@@ -273,20 +298,21 @@ public class Language {
 	public String parseColor(String s) {
 		return s.replaceAll("[&](\\w{1})", "\u00A7$1");
 	}
+
 	/**
 	 * Add a prefix to all nodes beginning with nodeBegin
+	 * 
 	 * @param nodeBegin
 	 * @param prefix
-	 * @return If there was at least a node matching 
+	 * @return If there was at least a node matching
 	 */
-	public boolean setPrefix(String nodeBegin, String prefix)
-	{
-		if(finalStrings==null)
+	public boolean setPrefix(String nodeBegin, String prefix) {
+		if (finalStrings == null)
 			return false;
-		TreeMap<String,String> toAdd=new TreeMap<String,String>();
-		for(Entry<String,String> entry : finalStrings.entrySet())
-			if(entry.getKey().startsWith(nodeBegin))
-				toAdd.put(entry.getKey(), prefix+entry.getValue());
+		TreeMap<String, String> toAdd = new TreeMap<String, String>();
+		for (Entry<String, String> entry : finalStrings.entrySet())
+			if (entry.getKey().startsWith(nodeBegin))
+				toAdd.put(entry.getKey(), prefix + entry.getValue());
 		finalStrings.putAll(toAdd);
 		prefixes.put(nodeBegin, prefix);
 		return !toAdd.isEmpty();
